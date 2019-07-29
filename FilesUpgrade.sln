@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29102.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilesUpgrade", "FilesUpgrade\FilesUpgrade.csproj", "{5729D68F-5C69-45FC-8C48-4641FB51F0EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FilesUpgrade.Test", "FilesUpgrade.Test\FilesUpgrade.Test.csproj", "{3386FFBD-607E-41C7-8D18-DB0CDEFD2282}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5729D68F-5C69-45FC-8C48-4641FB51F0EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5729D68F-5C69-45FC-8C48-4641FB51F0EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5729D68F-5C69-45FC-8C48-4641FB51F0EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5729D68F-5C69-45FC-8C48-4641FB51F0EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3386FFBD-607E-41C7-8D18-DB0CDEFD2282}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3386FFBD-607E-41C7-8D18-DB0CDEFD2282}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3386FFBD-607E-41C7-8D18-DB0CDEFD2282}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3386FFBD-607E-41C7-8D18-DB0CDEFD2282}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1ECC7BAC-A85A-4D94-AFE9-9858C21EF883}
+	EndGlobalSection
+EndGlobal
