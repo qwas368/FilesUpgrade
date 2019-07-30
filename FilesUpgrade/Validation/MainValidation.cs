@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using FilesUpgrade.Model;
 using FilesUpgrade.Monad;
 using LanguageExt;
 using System;
@@ -12,17 +13,24 @@ namespace FilesUpgrade.Validation
 {
     public static class MainValidation
     {
-        public static Subsystem<string> ValidateUpgradeParam(Seq<string> args) =>
-            Subsystem.Return(args.Count() > 0 ? args[0] : "");
+        /// <returns>(source, target)</returns>
+        public static Subsystem<(string, string)> ValidateUpgradeParam(Seq<string> args) => () =>
+        {
+            var paths = args.Count() >= 2 ? (args[0], args[1])
+                      : args.Count() == 1 ? (args[0], Directory.GetCurrentDirectory())
+                      : ("", "");
 
-        public static Subsystem<bool> CheckFileExist(FileInfo fileInfo) =>
+            return Out<(string, string)>.FromValue(paths);
+        };
+
+        public static Subsystem<bool> CheckFileExist(FileInfo fileInfo) => () =>
             fileInfo.Exists 
-                ? Subsystem.Return(true) 
-                : Subsystem.Fail<bool>($"File {fileInfo.FullName} is not existed");
+                ? Out<bool>.FromValue(true) 
+                : Out<bool>.FromError(($"File {fileInfo.FullName} is not existed"));
 
-        public static Subsystem<bool> IsZipFile(FileInfo fileInfo) =>
+        public static Subsystem<bool> IsZipFile(FileInfo fileInfo) => () =>
             Path.GetExtension(fileInfo.Name) == ".zip" 
-                ? Subsystem.Return(true) 
-                : Subsystem.Fail<bool>($"File {fileInfo.FullName} is not a zip file.");
+                ? Out<bool>.FromValue(true)
+                : Out<bool>.FromError($"File {fileInfo.FullName} is not a zip file.");
     }
 }

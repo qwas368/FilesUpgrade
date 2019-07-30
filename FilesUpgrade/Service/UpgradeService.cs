@@ -22,13 +22,13 @@ namespace FilesUpgrade.Service
             this.fileSystem = fileSystem;
         }
 
-        public Subsystem<Unit> Upgrade(string path) =>
-            from fileinfo        in fileSystem.GetFileInfo(path)
+        public Subsystem<Unit> Upgrade(string source, string target) =>
+            from fileinfo        in fileSystem.GetFileInfo(source)
             from _1              in CheckFileExist(fileinfo)
             from _2              in IsZipFile(fileinfo)
-            let _3  = fun(() => Console.WriteLine($"Check Upgrade file {fileinfo.Name}({fileinfo.Length/1024}kb) is existed."))()
-            from upzipDictionary in fileSystem.ExtractZipToCurrentDirectory(path)
-            let _5  = fun(() => Console.WriteLine($"Unzip to {upzipDictionary}"))()
+            from _3              in Subsystem.WriteLine($"Check Upgrade file {fileinfo.Name}({fileinfo.Length / 1024}kb) is existed.")
+            from upzipDictionary in fileSystem.ExtractZipToCurrentDirectory(source)
+            from _4              in Subsystem.WriteLine($"Unzip to {upzipDictionary}")
             select unit;
     }
 }

@@ -7,7 +7,7 @@
     <ProjectGuid>{5729D68F-5C69-45FC-8C48-4641FB51F0EC}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>FilesUpgrade</RootNamespace>
-    <AssemblyName>FilesUpgrade</AssemblyName>
+    <AssemblyName>換檔王</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -61,6 +61,7 @@
   <ItemGroup>
     <Compile Include="Controller\MainController.cs" />
     <Compile Include="Entry.cs" />
+    <Compile Include="IO\ConsoleW.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="Model\Error.cs" />
     <Compile Include="Model\Out.cs" />

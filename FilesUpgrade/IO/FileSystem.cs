@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using FilesUpgrade.Model;
 using FilesUpgrade.Monad;
 using LanguageExt;
 using System;
@@ -18,10 +19,10 @@ namespace FilesUpgrade.IO
 
         }
 
-        public Subsystem<FileInfo> GetFileInfo(string path) =>
-            Subsystem.Return(new FileInfo(path));
+        public Subsystem<FileInfo> GetFileInfo(string path) => () =>
+            Out<FileInfo>.FromValue(new FileInfo(path));
 
-        public Subsystem<string> ExtractZipToCurrentDirectory(string path)
+        public Subsystem<string> ExtractZipToCurrentDirectory(string path) => () =>
         {
             string extractPath = Path.Combine(Path.GetDirectoryName(path), "tmp");
 
@@ -29,7 +30,7 @@ namespace FilesUpgrade.IO
                 Directory.Delete(extractPath, recursive: true);
             ZipFile.ExtractToDirectory(path, extractPath);
 
-            return Subsystem.Return(extractPath);
-        }   
+            return Out<string>.FromValue(extractPath);
+        };
     }
 }

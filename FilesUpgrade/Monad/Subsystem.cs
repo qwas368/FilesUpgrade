@@ -89,5 +89,8 @@ namespace FilesUpgrade.Monad
 
         public static Subsystem<Unit> Log(string message) => () =>
             Out<Unit>.FromValue(unit, Seq1(message));
+
+        public static Subsystem<Unit> WriteLine(string value) => () =>
+            Out<Unit>.FromValue(fun(() => Console.WriteLine(value))());
     }
 }

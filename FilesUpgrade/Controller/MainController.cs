@@ -21,8 +21,9 @@ namespace FilesUpgrade.Controller
         }
 
         public virtual Subsystem<Unit> Upgrade(Seq<string> args) =>
-            from path in ValidateUpgradeParam(args)
-            from _    in upgradeService.Upgrade(path)
+            from paths in ValidateUpgradeParam(args)
+            let t = (source: paths.Item1, target: paths.Item2) // Destructuring
+            from _     in upgradeService.Upgrade(t.source, t.target)
             select unit;
     }
 }

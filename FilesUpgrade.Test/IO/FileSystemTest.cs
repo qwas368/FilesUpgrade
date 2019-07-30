@@ -22,10 +22,10 @@ namespace FilesUpgrade.Test.IO
         [TestMethod]
         public void ExtractZipToCurrentDirectory_Normal_Case()
         {
-            var expr = from path in new FileSystem().ExtractZipToCurrentDirectory(@"D:\repos\filesUpgrade\FilesUpgrade\_TestCase\EDconfig.zip")
+            var expr = from path in new FileSystem().ExtractZipToCurrentDirectory(@"D:\repos\filesUpgrade\FilesUpgrade\_TestCase\EDconfig.zi")
                        select path;
 
-            Assert.IsTrue(Directory.Exists(expr().Value));
+            Assert.IsFalse(Directory.Exists(expr().Value));
         }
     }
 }
