@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FilesUpgrade.Validation;
+using System;
 using System.IO;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using static FilesUpgrade.Validation.MainValidation;
@@ -44,6 +45,28 @@ namespace FilesUpgrade.Test.Validation
             var r = expr();
 
             Assert.IsTrue(r.Value);
+        }
+
+        [TestMethod()]
+        public void CheckFolderExistOrCreate_New_Folder()
+        {
+            string path = $@"D:\{new Random().Next(0, 2000)}";
+            var expr = CheckFolderExistOrCreate(path);
+            expr();
+
+            Assert.IsTrue(Directory.Exists(path));
+            Directory.Delete(path, true);
+        }
+
+        [TestMethod()]
+        public void CheckFolderExistOrCreate_New_Folder_Recursive()
+        {
+            string path = $@"D:\{new Random().Next(0, 2000)}\{new Random().Next(0, 2000)}";
+            var expr = CheckFolderExistOrCreate(path);
+            expr();
+
+            Assert.IsTrue(Directory.Exists(path));
+            Directory.Delete(Directory.GetParent(path).FullName, true);
         }
     }
 }

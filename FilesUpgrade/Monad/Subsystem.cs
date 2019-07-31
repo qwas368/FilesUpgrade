@@ -21,11 +21,18 @@ namespace FilesUpgrade.Monad
             return () => Out<A>.FromValue(value);
         }
 
+        public static Subsystem<Unit> Return(Action f) => () =>
+        {
+            f();
+            return Out<Unit>.FromValue(unit);
+        };
+
         public static Subsystem<A> Fail<A>(Exception exception) => () =>
             Out<A>.FromException(exception);
 
         public static Subsystem<A> Fail<A>(string message) => () =>
             Out<A>.FromError(message);
+
 
         public static Subsystem<B> Bind<A, B>(this Subsystem<A> ma, Func<A, Subsystem<B>> f) => () =>
         {

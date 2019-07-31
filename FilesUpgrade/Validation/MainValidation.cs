@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static LanguageExt.Prelude;
 
 namespace FilesUpgrade.Validation
 {
@@ -27,6 +28,11 @@ namespace FilesUpgrade.Validation
             fileInfo.Exists 
                 ? Out<bool>.FromValue(true) 
                 : Out<bool>.FromError(($"File {fileInfo.FullName} is not existed"));
+
+        public static Subsystem<DirectoryInfo> CheckFolderExistOrCreate(string path) => () =>
+            !Directory.Exists(path)
+                ? Out<DirectoryInfo>.FromValue(Directory.CreateDirectory(path))
+                : Out<DirectoryInfo>.FromValue(new DirectoryInfo(path));
 
         public static Subsystem<bool> IsZipFile(FileInfo fileInfo) => () =>
             Path.GetExtension(fileInfo.Name) == ".zip" 

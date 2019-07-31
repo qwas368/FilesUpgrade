@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using static LanguageExt.Prelude;
 using static FilesUpgrade.Validation.MainValidation;
+using FilesUpgrade.Model;
+using System.IO;
 
 namespace FilesUpgrade.Service
 {
@@ -29,6 +31,22 @@ namespace FilesUpgrade.Service
             from _3              in Subsystem.WriteLine($"Check Upgrade file {fileinfo.Name}({fileinfo.Length / 1024}kb) is existed.")
             from upzipDictionary in fileSystem.ExtractZipToCurrentDirectory(source)
             from _4              in Subsystem.WriteLine($"Unzip to {upzipDictionary}")
+            from targetDic       in CheckFolderExistOrCreate(target)
+            from _5              in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.\nShow treeView List.")
+            from targetNode      in WalkDirectoryTree(targetDic)
+            let _6 = ConsoleW.PrintNode(targetNode, "", true)
             select unit;
+
+        public Subsystem<Node> WalkDirectoryTree(DirectoryInfo root) => () =>
+        {
+            var files = root.GetFiles("*.*");
+            var subDirs = root.GetDirectories("*.*");
+            var filesNodes = files.Select(x => new Node(x)).ToSeq();
+            var subDirNodes = subDirs
+                .Select(x => WalkDirectoryTree(x)().Value)
+                .ToSeq();
+
+            return Out<Node>.FromValue(new Node(root, subDirNodes + filesNodes));
+        };
     }
 }
