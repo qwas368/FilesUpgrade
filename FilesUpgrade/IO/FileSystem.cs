@@ -19,7 +19,7 @@ namespace FilesUpgrade.IO
 
         }
 
-        public Subsystem<FileInfo> GetFileInfo(string path) => () =>
+        public virtual Subsystem<FileInfo> GetFileInfo(string path) => () =>
             Out<FileInfo>.FromValue(new FileInfo(path));
 
         public Subsystem<string> ExtractZipToCurrentDirectory(string path) => () =>
@@ -32,5 +32,8 @@ namespace FilesUpgrade.IO
 
             return Out<string>.FromValue(extractPath);
         };
+
+        public virtual Subsystem<string> ReadAllText(string path) => () =>
+            Out<string>.FromValue(File.ReadAllText(path));
     }
 }

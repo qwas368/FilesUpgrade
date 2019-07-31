@@ -12,6 +12,8 @@ using static LanguageExt.Prelude;
 using static FilesUpgrade.Validation.MainValidation;
 using FilesUpgrade.Model;
 using System.IO;
+using FilesUpgrade.Model.UpgradeSetting;
+using Newtonsoft.Json;
 
 namespace FilesUpgrade.Service
 {
@@ -35,6 +37,7 @@ namespace FilesUpgrade.Service
             from _5              in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.\nShow treeView List.")
             from targetNode      in WalkDirectoryTree(targetDic)
             let _6 = ConsoleW.PrintNode(targetNode, "", true)
+            from _7              in ReadConfig(Path.Combine(target, @"UpgradeSetting.json"))
             select unit;
 
         public Subsystem<Node> WalkDirectoryTree(DirectoryInfo root) => () =>
@@ -48,5 +51,29 @@ namespace FilesUpgrade.Service
 
             return Out<Node>.FromValue(new Node(root, subDirNodes + filesNodes));
         };
+
+        public Subsystem<Config> ReadConfig(string configPath)
+        {
+            Subsystem<Config> ParseConfig (FileInfo info) => () => {
+                if (!info.Exists)
+                {
+                    ConsoleW.Write("Dangerous ", ConsoleColor.Red);
+                    ConsoleW.WriteLine($"Config {info.FullName} is not existed.");
+                    return Out<Config>.FromValue(new Config());
+                }
+                else
+                {
+                    var expr = from context in fileSystem.ReadAllText(info.FullName)
+                               let cfg = JsonConvert.DeserializeObject<Config>(context)
+                               select cfg;
+
+                    return expr();
+                }
+            };
+
+            return from info in fileSystem.GetFileInfo(configPath)
+                   from cfg  in ParseConfig(info)
+                   select cfg;
+        }
     }
 }

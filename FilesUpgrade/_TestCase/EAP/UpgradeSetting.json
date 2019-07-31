@@ -1,0 +1,10 @@
+{
+    "replaceList": [
+        {
+            "EDconfig": "EDconfig.1"
+        }
+    ],
+    "ignoreList": [
+        "CVS"
+    ]
+}

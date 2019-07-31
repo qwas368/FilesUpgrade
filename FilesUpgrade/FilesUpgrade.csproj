@@ -43,6 +43,9 @@
     <Reference Include="LanguageExt.Core, Version=3.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LanguageExt.Core.3.1.24\lib\net45\LanguageExt.Core.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression.FileSystem" />
@@ -66,6 +69,7 @@
     <Compile Include="Model\Error.cs" />
     <Compile Include="Model\Node.cs" />
     <Compile Include="Model\Out.cs" />
+    <Compile Include="Model\UpgradeSetting\Config.cs" />
     <Compile Include="Monad\Subsystem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

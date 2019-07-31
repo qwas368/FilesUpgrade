@@ -14,6 +14,14 @@ namespace FilesUpgrade.IO
         public static Unit WriteLine(string value) =>
             fun(() => Console.WriteLine(value))();
 
+        public static Unit Write(string value, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.Write(value);
+            Console.ResetColor();
+            return unit;
+        }
+
         private const string _cross = " ├─";
         private const string _corner = @" └─";
         private const string _vertical = " │ ";
