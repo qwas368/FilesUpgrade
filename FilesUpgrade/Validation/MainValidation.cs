@@ -17,9 +17,12 @@ namespace FilesUpgrade.Validation
         /// <returns>(source, target)</returns>
         public static Subsystem<(string, string)> ValidateUpgradeParam(Seq<string> args) => () =>
         {
-            var paths = args.Count() >= 2 ? (args[0], args[1])
-                      : args.Count() == 1 ? (args[0], Directory.GetCurrentDirectory())
-                      : ("", "");
+            var paths = args.Count() switch
+            {
+                var c when c >= 2 => (args[0], args[1]),
+                var c when c == 1 => (args[0], Directory.GetCurrentDirectory()),
+                _ => ("", "")
+            };
 
             return Out<(string, string)>.FromValue(paths);
         };

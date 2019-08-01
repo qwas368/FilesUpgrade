@@ -64,12 +64,14 @@
   <ItemGroup>
     <Compile Include="Controller\MainController.cs" />
     <Compile Include="Entry.cs" />
+    <Compile Include="Enum\ReplaceEnum.cs" />
     <Compile Include="IO\ConsoleW.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="Model\Error.cs" />
     <Compile Include="Model\Node.cs" />
     <Compile Include="Model\Out.cs" />
     <Compile Include="Model\UpgradeSetting\Config.cs" />
+    <Compile Include="Model\UpgradeSetting\Replace.cs" />
     <Compile Include="Monad\Subsystem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

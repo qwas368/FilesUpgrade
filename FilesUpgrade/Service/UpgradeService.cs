@@ -27,18 +27,34 @@ namespace FilesUpgrade.Service
         }
 
         public Subsystem<Unit> Upgrade(string source, string target) =>
-            from fileinfo        in fileSystem.GetFileInfo(source)
-            from _1              in CheckFileExist(fileinfo)
-            from _2              in IsZipFile(fileinfo)
-            from _3              in Subsystem.WriteLine($"Check Upgrade file {fileinfo.Name}({fileinfo.Length / 1024}kb) is existed.")
-            from upzipDictionary in fileSystem.ExtractZipToCurrentDirectory(source)
-            from _4              in Subsystem.WriteLine($"Unzip to {upzipDictionary}")
-            from targetDic       in CheckFolderExistOrCreate(target)
-            from _5              in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.\nShow treeView List.")
-            from targetNode      in WalkDirectoryTree(targetDic)
-            let _6 = ConsoleW.PrintNode(targetNode, "", true)
-            from _7              in ReadConfig(Path.Combine(target, @"UpgradeSetting.json"))
+            from fileinfo in TryGetFileInfo(source)
+            from upzipPath in fileSystem.ExtractZipToCurrentDirectory(source)
+            from _1 in Subsystem.WriteLine($"Unzip to {upzipPath}")
+            from targetDic in CheckFolderExistOrCreate(target)
+            from _2 in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
+            from targetNode in TryGetNode(targetDic)
+            from cfg in FetchConfig(Path.Combine(target, @"UpgradeSetting.json"))
+            let upzipDic = new DirectoryInfo(upzipPath)
+            from sourceNode in TryGetNode(upzipDic)
             select unit;
+
+        private Subsystem<FileInfo> TryGetFileInfo(string source) =>
+            from fileinfo in fileSystem.GetFileInfo(source)
+            from _1 in CheckFileExist(fileinfo)
+            from _2 in IsZipFile(fileinfo)
+            from _3 in Subsystem.WriteLine($"Check Upgrade file {fileinfo.Name}({fileinfo.Length / 1024}kb) is existed.")
+            select fileinfo;
+
+        private Subsystem<Node> TryGetNode(DirectoryInfo info) => () =>
+        {
+            ConsoleW.Write(info.FullName + "\n", ConsoleColor.Yellow);
+
+            var expr = from targetNode in WalkDirectoryTree(info)
+                       let _3 = ConsoleW.PrintNode(targetNode, "", true)
+                       select targetNode;
+
+            return expr();
+        };
 
         public Subsystem<Node> WalkDirectoryTree(DirectoryInfo root) => () =>
         {
@@ -52,7 +68,7 @@ namespace FilesUpgrade.Service
             return Out<Node>.FromValue(new Node(root, subDirNodes + filesNodes));
         };
 
-        public Subsystem<Config> ReadConfig(string configPath)
+        public Subsystem<Config> FetchConfig(string configPath)
         {
             Subsystem<Config> ParseConfig (FileInfo info) => () => {
                 if (!info.Exists)
@@ -75,5 +91,20 @@ namespace FilesUpgrade.Service
                    from cfg  in ParseConfig(info)
                    select cfg;
         }
+
+        /*
+        public void FullRename(Node node)
+        {
+            foreach (var item in node.Children)
+            {
+                FullRename(item);
+            }
+
+            node.Info.Match(
+                left => 
+                )
+            File.Move("oldfilename", "newfilename");
+        }
+        */
     }
 }

@@ -29,9 +29,11 @@ namespace FilesUpgrade
 
             if (result.IsFailed)
             {
-                result.Error.Match(
-                    err => Console.WriteLine(err.Message),
-                    () => Console.WriteLine("unknown error"));
+                var errMessage = result.Error.Match(
+                    err => err.Exception.Match(x => x.ToString(), () => err.Message),
+                    () => "unknown error");
+
+                Console.WriteLine(errMessage);
             }
             return result;
         }

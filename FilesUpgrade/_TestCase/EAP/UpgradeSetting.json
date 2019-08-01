@@ -1,7 +1,9 @@
 {
     "replaceList": [
         {
-            "EDconfig": "EDconfig.1"
+            "pattern": "EDconfig",
+			"replacement": "EDconfig.1",
+			"type": "File"
         }
     ],
     "ignoreList": [

@@ -29,7 +29,7 @@ namespace FilesUpgrade.Service.Tests
         }
 
         [TestMethod()]
-        public void ReadConfigTest_Success()
+        public void FetchConfigTest_Success()
         {
             var fakeJson = @"C:\mock.json";
 
@@ -41,14 +41,14 @@ namespace FilesUpgrade.Service.Tests
             // mock FileSystem
             var mock = new Mock<FileSystem>();
             mock.Setup(m => m.GetFileInfo(fakeJson)).Returns(() => Out<FileInfo>.FromValue(fileInfo));
-            mock.Setup(m => m.ReadAllText(fakeJson)).Returns(() => Out<string>.FromValue("{\"replaceList\":[{\"EDconfig\":\"EDconfig.1\"}],\"ignoreList\":[\"CVS\"]}"));
+            mock.Setup(m => m.ReadAllText(fakeJson)).Returns(() => Out<string>.FromValue("{\"replaceList\":[{\"pattern\":\"EDconfig\",\"replacement\":\"EDconfig.1\",\"type\":0}],\"ignoreList\":[\"CVS\"]}"));
 
             var service = new UpgradeService(mock.Object);
-            var expr = service.ReadConfig(fakeJson);
+            var expr = service.FetchConfig(fakeJson);
             var value = expr().Value;
 
             Assert.AreEqual(value.IgnoreList[0], "CVS");
-            Assert.AreEqual(value.ReplaceList[0].EDconfig.Value, "EDconfig.1");
+            Assert.AreEqual(value.ReplaceList[0].Replacement, "EDconfig.1");
         }
     }
 }
