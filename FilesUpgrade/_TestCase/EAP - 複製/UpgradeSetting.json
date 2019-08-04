@@ -1,0 +1,17 @@
+{
+    "replaceList": [
+        {
+            "pattern": "EDconfig",
+			"replacement": "EDconfig.1",
+			"type": "File"
+        },
+        {
+            "pattern": "BTSK.{4}",
+			"replacement": "BTSK7702",
+			"type": 1
+        }
+    ],
+    "ignoreList": [
+        "CVS"
+    ]
+}

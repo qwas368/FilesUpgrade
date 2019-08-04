@@ -9,6 +9,7 @@ namespace FilesUpgrade.Enum
     public enum Type
     {
         File,
-        Directory
+        Directory,
+        FileContent
     }
 }

@@ -14,6 +14,23 @@ namespace FilesUpgrade.IO
         public static Unit WriteLine(string value) =>
             fun(() => Console.WriteLine(value))();
 
+        public static Unit WriteLine(string value, ConsoleColor color)
+        {
+            Console.ForegroundColor = color;
+            Console.WriteLine(value);
+            Console.ResetColor();
+            return unit;
+        }
+
+        public static Unit WriteLine(string value, ConsoleColor color, ConsoleColor background)
+        {
+            Console.ForegroundColor = color;
+            Console.BackgroundColor = background;
+            Console.WriteLine(value);
+            Console.ResetColor();
+            return unit;
+        }
+
         public static Unit Write(string value, ConsoleColor color)
         {
             Console.ForegroundColor = color;
@@ -46,8 +63,8 @@ namespace FilesUpgrade.IO
             }
 
             node.Info.Match(
-                right => Console.WriteLine(right.Name),
-                left => Console.WriteLine(left.Name));
+                right => ConsoleW.WriteLine(right.Name, node.Color),
+                left => ConsoleW.WriteLine(left.Name, node.Color));
 
             // Loop through the children recursively, passing in the
             // indent, and the isLast parameter
