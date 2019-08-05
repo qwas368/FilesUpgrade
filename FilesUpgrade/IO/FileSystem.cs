@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -91,7 +92,7 @@ namespace FilesUpgrade.IO
         /// <summary>
         /// 複製過去
         /// </summary>
-        public virtual void MoveDirectory(string source, string target)
+        public virtual void CopyDirectory(string source, string target)
         {
             var sourcePath = source.TrimEnd('\\', ' ');
             var targetPath = target.TrimEnd('\\', ' ');
@@ -104,7 +105,7 @@ namespace FilesUpgrade.IO
                 foreach (var file in folder)
                 {
                     var targetFile = Path.Combine(targetFolder, Path.GetFileName(file));
-                    if (File.Exists(targetFile) && new FileInfo(targetFile).Length == new FileInfo(file).Length)
+                    if (IsFileFullyEqual(targetFile, file))
                     {
                         continue;
                     }
@@ -117,6 +118,22 @@ namespace FilesUpgrade.IO
             }
 
             Directory.Delete(source, true);
+        }
+
+        /// <summary>
+        /// 檢查兩個檔案是否完全一樣
+        /// </summary>
+        public virtual bool IsFileFullyEqual(string path1, string path2) =>
+            File.Exists(path1) && 
+            File.Exists(path2) &&
+            new FileInfo(path1).Length == new FileInfo(path2).Length &&
+            SHA256(path1) == SHA256(path2);
+
+        private string SHA256(string filePath)
+        {
+            using SHA256 SHA256 = SHA256.Create();
+            using FileStream fileStream = File.OpenRead(filePath);
+            return Convert.ToBase64String(SHA256.ComputeHash(fileStream));
         }
     }
 }

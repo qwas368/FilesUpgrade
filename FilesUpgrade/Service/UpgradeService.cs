@@ -31,11 +31,11 @@ namespace FilesUpgrade.Service
         public Subsystem<Unit> Upgrade(string source, string target) =>
             from fileinfo   in TryGetFileInfo(source)
             from upzipPath  in fileSystem.ExtractZipToCurrentDirectory(source)
-            from _1 in Subsystem.WriteLine($"Unzip to {upzipPath}")
+            from _1         in Subsystem.WriteLine($"Unzip to {upzipPath}")
             from targetDic  in CheckFolderExistOrCreate(target)
-            from _2 in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
+            from _2         in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
             from targetNode in WalkDirectoryTree(targetDic)
-            from cfg in FetchConfig(Path.Combine(target, @"UpgradeSetting.json"))
+            from cfg        in FetchConfig(Path.Combine(target, @"UpgradeSetting.json"))
             let upzipDic = new DirectoryInfo(upzipPath)
             from sourceNode in WalkDirectoryTree(upzipDic)
             from renameNode in FullRename(upzipPath, cfg)
@@ -127,12 +127,13 @@ namespace FilesUpgrade.Service
         {
             if (node.Info.IsRight)
                 return node;
-
             var fileInfo = node.Info.IfRight(() => default);
+
+            var oldPath = fileInfo.FullName;
             var newPath = fileInfo.FullName.Replace(sourceDir, targetDir);
             var newFileInfo = new FileInfo(newPath);
 
-            if (newFileInfo.Exists && newFileInfo.Length == fileInfo.Length)
+            if (newFileInfo.Exists && fileSystem.IsFileFullyEqual(oldPath, newPath))
             {
                 node.Color = ConsoleColor.Gray;
             }
@@ -174,7 +175,7 @@ namespace FilesUpgrade.Service
 
         private Subsystem<Unit> MoveDirectory(string source, string target) => () =>
         {
-            fileSystem.MoveDirectory(source, target);
+            fileSystem.CopyDirectory(source, target);
             return Out<Unit>.FromValue(unit);
         };
 

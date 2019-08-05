@@ -69,5 +69,22 @@ namespace FilesUpgrade.IO.Tests
             Assert.IsTrue(File.Exists(@"D:/TestForUnitTest/BTSK7702/BTSK7702_1/BTSK7702_1.xml"));
             Directory.Delete(testFolder, true);
         }
+
+        [TestMethod()]
+        public void IsFileFullyEqualTest_Not_Equal_Test()
+        {
+            if (File.Exists(@"test1.txt"))
+                File.Delete(@"test1.txt");
+            if (File.Exists(@"test2.txt"))
+                File.Delete(@"test2.txt");
+            var stream1 = File.CreateText(@"test1.txt");
+            var stream2 = File.CreateText(@"test2.txt");
+            stream1.WriteLine("12");
+            stream2.WriteLine("34");
+            stream1.Dispose();
+            stream2.Dispose();
+
+            Assert.IsFalse(new FileSystem().IsFileFullyEqual(@"test1.txt", @"test2.txt"));
+        }
     }
 }
