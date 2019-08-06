@@ -42,7 +42,8 @@ namespace FilesUpgrade.Service
             from _3         in ReplaceFileContent(renameNode, cfg.ReplaceList)
             from planedNode in ShowUpgradePlan(renameNode, upzipPath, target)
             from _4         in CheckYorN("Continue to upgrade? (y/N)")
-            from _5         in MoveDirectory(upzipPath, target)
+            from needBackup in GetYorN("Need to backup? (y/N)")
+            from _5         in CopyDirectory(upzipPath, target, needBackup)
             select unit;
 
         private Subsystem<FileInfo> TryGetFileInfo(string source) =>
@@ -165,7 +166,7 @@ namespace FilesUpgrade.Service
 
         private Subsystem<Unit> CheckYorN(string message) => () =>
         {
-            ConsoleW.WriteLine(message);
+            ConsoleW.Write(message);
             var keyin = Console.ReadLine();
             if (keyin.StartsWith("Y") || keyin.StartsWith("y"))
                 return Out<Unit>.FromValue(unit);
@@ -173,9 +174,19 @@ namespace FilesUpgrade.Service
                 return Out<Unit>.FromError("Stop upgrade");
         };
 
-        private Subsystem<Unit> MoveDirectory(string source, string target) => () =>
+        private Subsystem<bool> GetYorN(string message) => () =>
         {
-            fileSystem.CopyDirectory(source, target);
+            ConsoleW.Write(message);
+            var keyin = Console.ReadLine();
+            if (keyin.StartsWith("Y") || keyin.StartsWith("y"))
+                return Out<bool>.FromValue(true);
+            else
+                return Out<bool>.FromValue(false);
+        };
+
+        private Subsystem<Unit> CopyDirectory(string source, string target, bool needBackup) => () =>
+        {
+            fileSystem.CopyDirectory(source, target, needBackup);
             return Out<Unit>.FromValue(unit);
         };
 
@@ -191,7 +202,8 @@ namespace FilesUpgrade.Service
                     {
                         string text = File.ReadAllText(fileInfo.FullName);
                         text = replaces.Fold(text, (s, repalce) => Regex.Replace(s, repalce.Pattern, repalce.Replacement));
-                        File.WriteAllText(fileInfo.FullName, text);
+
+                        File.WriteAllText(fileInfo.FullName, text, fileSystem.GetEncoding(fileInfo.FullName));
                     }
                 }
             }

@@ -31,7 +31,7 @@ namespace FilesUpgrade.IO
             return unit;
         }
 
-        public static Unit Write(string value, ConsoleColor color)
+        public static Unit Write(string value, ConsoleColor color = ConsoleColor.Gray)
         {
             Console.ForegroundColor = color;
             Console.Write(value);
