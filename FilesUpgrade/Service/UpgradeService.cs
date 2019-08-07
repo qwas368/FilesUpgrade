@@ -198,7 +198,7 @@ namespace FilesUpgrade.Service
                 if (node.Info.IsLeft)
                 {
                     var fileInfo = node.Info.IfRight(() => default);
-                    if (fileInfo.Extension == ".xml" || fileInfo.Extension == ".json" || fileInfo.Extension == ".txt")
+                    if (fileInfo.Extension == ".xml" || fileInfo.Extension == ".json" || fileInfo.Extension == ".txt" || fileInfo.Extension == ".config")
                     {
                         string text = File.ReadAllText(fileInfo.FullName);
                         text = replaces.Fold(text, (s, repalce) => Regex.Replace(s, repalce.Pattern, repalce.Replacement));

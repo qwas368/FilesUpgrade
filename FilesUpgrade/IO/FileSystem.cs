@@ -90,7 +90,7 @@ namespace FilesUpgrade.IO
         }
 
         /// <summary>
-        /// 複製過去
+        /// 複製整個資料夾
         /// </summary>
         public virtual void CopyDirectory(string source, string target, bool needBackup)
         {
