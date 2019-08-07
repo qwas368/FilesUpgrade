@@ -13,10 +13,7 @@ namespace FilesUpgrade.Monad
 
     public static class Subsystem
     {
-        public static Subsystem<A> Return<A>(A value,
-            [System.Runtime.CompilerServices.CallerMemberName] string memberName = "",
-            [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = "",
-            [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = 0)
+        public static Subsystem<A> Return<A>(A value)
         {
             return () => Out<A>.FromValue(value);
         }

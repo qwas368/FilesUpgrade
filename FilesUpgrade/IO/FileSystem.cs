@@ -12,6 +12,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using static LanguageExt.Prelude;
 
 namespace FilesUpgrade.IO
 {
@@ -92,7 +93,7 @@ namespace FilesUpgrade.IO
         /// <summary>
         /// 複製整個資料夾
         /// </summary>
-        public virtual void CopyDirectory(string source, string target, bool needBackup)
+        public virtual void CopyDirectory(string source, string target)
         {
             var sourcePath = source.TrimEnd('\\', ' ');
             var targetPath = target.TrimEnd('\\', ' ');
@@ -111,10 +112,14 @@ namespace FilesUpgrade.IO
                     }
                     else if (File.Exists(targetFile))
                     {
-                        if (needBackup)
-                            File.Move(targetFile, Path.Combine(targetFolder, "_" + Path.GetFileName(file)));
-                        else
+                        try
+                        {
                             File.Delete(targetFile);
+                        }
+                        catch
+                        {
+                            File.Move(targetFile, Path.Combine(targetFolder, "_" + Path.GetFileName(file)));
+                        }
                     }
                     File.Move(file, targetFile);
                 }
@@ -159,6 +164,16 @@ namespace FilesUpgrade.IO
             using SHA256 SHA256 = SHA256.Create();
             using FileStream fileStream = File.OpenRead(filePath);
             return Convert.ToBase64String(SHA256.ComputeHash(fileStream));
+        }
+
+        public Unit DeleteSubFolder(string dir, string name)
+        {
+            foreach (DirectoryInfo subfolder in new DirectoryInfo(dir).GetDirectories(name, SearchOption.AllDirectories))
+            {
+                Directory.Delete(subfolder.FullName, true);
+            }
+
+            return unit;
         }
     }
 }

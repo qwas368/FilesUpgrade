@@ -37,13 +37,13 @@ namespace FilesUpgrade.Service
             from targetNode in WalkDirectoryTree(targetDic)
             from cfg        in FetchConfig(Path.Combine(target, @"UpgradeSetting.json"))
             let upzipDic = new DirectoryInfo(upzipPath)
+            from _3         in DeleteIgnoreList(upzipPath, cfg.IgnoreList)
             from sourceNode in WalkDirectoryTree(upzipDic)
             from renameNode in FullRename(upzipPath, cfg)
-            from _3         in ReplaceFileContent(renameNode, cfg.ReplaceList)
+            from _4         in ReplaceFileContent(renameNode, cfg.ReplaceList)
             from planedNode in ShowUpgradePlan(renameNode, upzipPath, target)
-            from _4         in CheckYorN("Continue to upgrade? (y/N)")
-            from needBackup in GetYorN("Need to backup? (y/N)")
-            from _5         in CopyDirectory(upzipPath, target, needBackup)
+            from _5         in CheckYorN("Continue to upgrade? (y/N)")
+            from _6         in CopyDirectory(upzipPath, target)
             select unit;
 
         private Subsystem<FileInfo> TryGetFileInfo(string source) =>
@@ -184,9 +184,9 @@ namespace FilesUpgrade.Service
                 return Out<bool>.FromValue(false);
         };
 
-        private Subsystem<Unit> CopyDirectory(string source, string target, bool needBackup) => () =>
+        private Subsystem<Unit> CopyDirectory(string source, string target) => () =>
         {
-            fileSystem.CopyDirectory(source, target, needBackup);
+            fileSystem.CopyDirectory(source, target);
             return Out<Unit>.FromValue(unit);
         };
 
@@ -210,6 +210,14 @@ namespace FilesUpgrade.Service
                     }
                 }
             }
+
+            return Out<Unit>.FromValue(unit);
+        };
+
+        public Subsystem<Unit> DeleteIgnoreList(string dir, List<string> names) => () =>
+        {
+            foreach (var name in names)
+                fileSystem.DeleteSubFolder(dir, name);
 
             return Out<Unit>.FromValue(unit);
         };
