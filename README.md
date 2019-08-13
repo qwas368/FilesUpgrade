@@ -1,5 +1,6 @@
 # Bug
 
-1. 當UpgradeConfig.json為空時
-3. 需要熱升級，只要dll pdb exe 三種類型的副檔名
+1. 可以生成UpgradeConfig.json的範例code
+2. git比較圖
+3. replaceList可以針對檔案
 4. 需要config要改檔案的extension
