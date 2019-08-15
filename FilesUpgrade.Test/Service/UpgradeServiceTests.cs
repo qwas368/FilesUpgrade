@@ -19,7 +19,7 @@ namespace FilesUpgrade.Service.Tests
         [TestMethod]
         public void WalkDirectoryTreeTest()
         {
-            var service = new UpgradeService(null);
+            var service = new UpgradeService(null, null);
             var expr = service.WalkDirectoryTree(new DirectoryInfo(Directory.GetCurrentDirectory()));
             var r = expr().Value;
 
@@ -43,7 +43,7 @@ namespace FilesUpgrade.Service.Tests
             mock.Setup(m => m.GetFileInfo(fakeJson)).Returns(() => Out<FileInfo>.FromValue(fileInfo));
             mock.Setup(m => m.ReadAllText(fakeJson)).Returns(() => Out<string>.FromValue("{\"replaceList\":[{\"pattern\":\"EDconfig\",\"replacement\":\"EDconfig.1\",\"type\":0}],\"ignoreList\":[\"CVS\"]}"));
 
-            var service = new UpgradeService(mock.Object);
+            var service = new UpgradeService(mock.Object, null);
             var expr = service.FetchConfig(fakeJson);
             var value = expr().Value;
 

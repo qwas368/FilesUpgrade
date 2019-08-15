@@ -78,5 +78,44 @@ namespace FilesUpgrade.IO
 
             return unit;
         }
+
+        public static Unit PrintNode(Node node, string indent, bool isLast, Node selected)
+        {
+            // Print the provided pipes/spaces indent
+            Console.Write(indent);
+
+            // Depending if this node is a last child, print the
+            // corner or cross, and calculate the indent that will
+            // be passed to its children
+            if (isLast)
+            {
+                Console.Write(_corner);
+                indent += _space;
+            }
+            else
+            {
+                Console.Write(_cross);
+                indent += _vertical;
+            }
+
+            // get file name
+            var fileName = node.Info.Match(right => right.Name, left => left.Name);
+            if (node == selected)
+                ConsoleW.WriteLine(fileName, ConsoleColor.Black, ConsoleColor.Gray);
+            else
+                ConsoleW.WriteLine(fileName, node.Color);
+
+            // Loop through the children recursively, passing in the
+            // indent, and the isLast parameter
+            var numberOfChildren = node.Children.Count();
+            for (var i = 0; i < numberOfChildren; i++)
+            {
+                var child = node.Children[i];
+                isLast = (i == (numberOfChildren - 1));
+                PrintNode(child, indent, isLast, selected);
+            }
+
+            return unit;
+        }
     }
 }

@@ -26,6 +26,9 @@ namespace FilesUpgrade.IO
         public virtual Subsystem<FileInfo> GetFileInfo(string path) => () =>
             Out<FileInfo>.FromValue(new FileInfo(path));
 
+        public virtual Subsystem<DirectoryInfo> GetDirectoryInfo(string path) => () =>
+            Out<DirectoryInfo>.FromValue(new DirectoryInfo(path));
+
         public Subsystem<string> ExtractZipToCurrentDirectory(string path) => () =>
         {
             string extractPath = Path.Combine(Path.GetDirectoryName(path), "tmp");
@@ -132,7 +135,7 @@ namespace FilesUpgrade.IO
         /// 檢查兩個檔案是否完全一樣
         /// </summary>
         public virtual bool IsFileFullyEqual(string path1, string path2) =>
-            File.Exists(path1) && 
+            File.Exists(path1) &&
             File.Exists(path2) &&
             new FileInfo(path1).Length == new FileInfo(path2).Length &&
             SHA256(path1) == SHA256(path2);
@@ -174,6 +177,40 @@ namespace FilesUpgrade.IO
             }
 
             return unit;
+        }
+
+        /// <summary>
+        /// Get Directory
+        /// </summary>
+        /// <returns>byte</returns>
+        public long GetDirectorySize(string p)
+        {
+            string[] a = Directory.GetFiles(p, "*.*");
+
+            long b = 0;
+            foreach (string name in a)
+            {
+                FileInfo info = new FileInfo(name);
+                b += info.Length;
+            }
+            return b;
+        }
+
+        /// <summary>
+        /// Create Directory
+        /// </summary>
+        /// <param name="force">刪除已存在的資料夾</param>
+        /// <returns></returns>
+        public string CreateTmpDir(bool force)
+        {
+            var dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FileUpgrade");
+            var tmpFolder = Path.Combine(dataFolder, "Tmp");
+
+            if (force && Directory.Exists(tmpFolder))
+                Directory.Delete(tmpFolder, true);
+            Directory.CreateDirectory(tmpFolder);
+
+            return tmpFolder;
         }
     }
 }

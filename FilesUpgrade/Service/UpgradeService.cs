@@ -23,35 +23,50 @@ namespace FilesUpgrade.Service
     {
         private readonly FileSystem fileSystem;
 
-        public UpgradeService(FileSystem fileSystem)
+        private readonly Diff diff;
+
+        public UpgradeService(FileSystem fileSystem, Diff diff)
         {
             this.fileSystem = fileSystem;
+            this.diff = diff;
         }
 
         public Subsystem<Unit> Upgrade(string source, string target) =>
-            from fileinfo   in TryGetFileInfo(source)
-            from upzipPath  in fileSystem.ExtractZipToCurrentDirectory(source)
-            from _1         in Subsystem.WriteLine($"Unzip to {upzipPath}")
+            from info       in ValidateSource(source)
+            from upzipPath  in CopyToTempPath(info)
+            from _2         in Subsystem.WriteLine($"Unzip to {upzipPath}")
             from targetDic  in CheckFolderExistOrCreate(target)
-            from _2         in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
+            from _3         in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
             from targetNode in WalkDirectoryTree(targetDic)
             from cfg        in FetchConfig(Path.Combine(target, @"UpgradeSetting.json"))
             let upzipDic = new DirectoryInfo(upzipPath)
-            from _3         in DeleteIgnoreList(upzipPath, cfg.IgnoreList)
+            from _4         in DeleteIgnoreList(upzipPath, cfg.IgnoreList)
             from sourceNode in WalkDirectoryTree(upzipDic)
             from renameNode in FullRename(upzipPath, cfg)
-            from _4         in ReplaceFileContent(renameNode, cfg.ReplaceList)
+            from _5         in ReplaceFileContent(renameNode, cfg.ReplaceList)
             from planedNode in ShowUpgradePlan(renameNode, upzipPath, target)
-            from _5         in CheckYorN("Continue to upgrade? (y/N)")
-            from _6         in CopyDirectory(upzipPath, target)
+            from _6         in CheckYorN("Continue to upgrade? (y/N)")
+            from _7         in SelectUpgradePlanDiff(renameNode, upzipPath, target)
+            from _8         in CopyDirectory(upzipPath, target)
             select unit;
 
-        private Subsystem<FileInfo> TryGetFileInfo(string source) =>
+        private Subsystem<Either<FileInfo, DirectoryInfo>> ValidateSource(string source) =>
+            Directory.Exists(source)
+                ? ValidateAsDir(source).Bind(d => Subsystem.Return<Either<FileInfo, DirectoryInfo>>(d)) 
+                : ValidateAsFile(source).Bind(f => Subsystem.Return<Either<FileInfo, DirectoryInfo>>(f));
+
+        private Subsystem<FileInfo> ValidateAsFile(string source) =>
             from fileinfo in fileSystem.GetFileInfo(source)
             from _1 in CheckFileExist(fileinfo)
             from _2 in IsZipFile(fileinfo)
             from _3 in Subsystem.WriteLine($"Check Upgrade file {fileinfo.Name}({fileinfo.Length / 1024}kb) is existed.")
             select fileinfo;
+
+        private Subsystem<DirectoryInfo> ValidateAsDir(string source) =>
+            from dirInfo in fileSystem.GetDirectoryInfo(source)
+            let size = fileSystem.GetDirectorySize(source)
+            from _ in Subsystem.WriteLine($"Check Upgrade file {dirInfo.Name}({size / 1024}kb) is existed.")
+            select dirInfo;
 
         private Subsystem<Node> TryGetNode(DirectoryInfo info) => () =>
         {
@@ -124,6 +139,37 @@ namespace FilesUpgrade.Service
             return Out<Node>.FromValue(sourceNode);
         };
 
+        public Subsystem<Node> SelectUpgradePlanDiff(Node sourceNode, string sourceDir, string targetDir) => () =>
+        {
+            var nodeList = (from node in sourceNode.Enumerate().Tail()
+                            let colorNode = MarkKUpgradePlanColor(node, sourceDir, targetDir)
+                            select colorNode)
+                            .ToList();
+
+            var index = 0;
+            while (true)
+            {
+                ConsoleKeyInfo ckey = Console.ReadKey();
+                Console.Clear();
+
+                switch (ckey.Key)
+                {
+                    case ConsoleKey.DownArrow:
+                        index = index < nodeList.Count() - 1 ? index + 1 : index;
+                        break;
+                    case ConsoleKey.UpArrow:
+                        index = index > 0 ? index - 1 : index;
+                        break;
+                    case ConsoleKey.Enter:
+                        Diff(nodeList[index], sourceDir, targetDir);
+                        Console.ReadKey();
+                        break;
+                }
+
+                ConsoleW.PrintNode(sourceNode, "", true, nodeList[index]);
+            }
+        };
+
         private Node MarkKUpgradePlanColor(Node node, string sourceDir, string targetDir)
         {
             if (node.Info.IsRight)
@@ -162,6 +208,18 @@ namespace FilesUpgrade.Service
             }
 
             return node;
+        }
+
+        private Unit Diff(Node node, string sourceDir, string targetDir)
+        {
+            if (node.Info.IsRight)
+                return unit;
+
+            var fileInfo = node.Info.IfRight(() => default);
+            var oldPath = fileInfo.FullName;
+            var newPath = fileInfo.FullName.Replace(sourceDir, targetDir);
+            diff.ShowDiff(oldPath, newPath);
+            return unit;
         }
 
         private Subsystem<Unit> CheckYorN(string message) => () =>
@@ -220,6 +278,22 @@ namespace FilesUpgrade.Service
                 fileSystem.DeleteSubFolder(dir, name);
 
             return Out<Unit>.FromValue(unit);
+        };
+
+        /// <summary>
+        /// 取得暫存路徑
+        /// </summary>
+        public Subsystem<string> CopyToTempPath(Either<FileInfo, DirectoryInfo> info) => 
+            info.Match(
+                rhs => CopyDirToTemp(rhs.FullName),
+                lhs => fileSystem.ExtractZipToCurrentDirectory(lhs.FullName)
+            );
+        
+        public Subsystem<string> CopyDirToTemp(string source) => () =>
+        {
+            var tmp = fileSystem.CreateTmpDir(true);
+            fileSystem.CopyDirectory(source, tmp);
+            return Out<string>.FromValue(tmp);
         };
     }
 }

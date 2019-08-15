@@ -86,5 +86,14 @@ namespace FilesUpgrade.IO.Tests
 
             Assert.IsFalse(new FileSystem().IsFileFullyEqual(@"test1.txt", @"test2.txt"));
         }
+
+        [TestMethod()]
+        public void CreateDirTest()
+        {
+            var path = new FileSystem().CreateTmpDir(true);
+
+            Assert.IsTrue(Directory.Exists(path));
+            Assert.AreEqual(path, @"C:\Users\rugini\AppData\Roaming\FileUpgrade\Tmp");
+        }
     }
 }

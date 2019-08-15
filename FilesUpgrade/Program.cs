@@ -44,6 +44,7 @@ namespace FilesUpgrade
                 .Where(t => t.Name.EndsWith("Controller"));
 
             builder.RegisterType<FileSystem>();
+            builder.RegisterType<Diff>();
             builder.RegisterType<Entry>();
 
             return builder.Build();

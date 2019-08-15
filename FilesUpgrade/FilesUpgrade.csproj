@@ -66,6 +66,7 @@
     <Compile Include="Entry.cs" />
     <Compile Include="Enum\ReplaceEnum.cs" />
     <Compile Include="IO\ConsoleW.cs" />
+    <Compile Include="IO\Diff.cs" />
     <Compile Include="IO\FileSystem.cs" />
     <Compile Include="Model\Error.cs" />
     <Compile Include="Model\Node.cs" />
@@ -86,9 +87,11 @@
   <ItemGroup>
     <Content Include="_TestCase\EAP\EDconfig.xml" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="External\Diff\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>
-    </PreBuildEvent>
+    <PreBuildEvent>xcopy "$(ProjectDir)External\Diff" "$(TargetDir)" /e /y /i /r</PreBuildEvent>
   </PropertyGroup>
 </Project>
