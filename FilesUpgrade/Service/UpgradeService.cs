@@ -21,21 +21,27 @@ namespace FilesUpgrade.Service
 {
     public class UpgradeService
     {
-        private readonly FileSystem fileSystem;
+        private readonly FileSystem fs;
 
         private readonly Diff diff;
 
-        public UpgradeService(FileSystem fileSystem, Diff diff)
+        private readonly MainValidation mainValidation;
+
+        public UpgradeService(
+            FileSystem fileSystem, 
+            Diff diff,
+            MainValidation mainValidation)
         {
-            this.fileSystem = fileSystem;
+            this.fs = fileSystem;
             this.diff = diff;
+            this.mainValidation = mainValidation;
         }
 
         public Subsystem<Unit> Upgrade(string source, string target) =>
-            from info       in ValidateSource(source)
+            from info       in mainValidation.ValidateSource(source)
             from upzipPath  in CopyToTempPath(info)
             from _2         in Subsystem.WriteLine($"Unzip to {upzipPath}")
-            from targetDic  in CheckFolderExistOrCreate(target)
+            from targetDic  in mainValidation.CheckFolderExistOrCreate(target)
             from _3         in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
             from targetNode in WalkDirectoryTree(targetDic)
             from cfg        in FetchConfig(Path.Combine(target, @"UpgradeSetting.json"))
@@ -49,24 +55,6 @@ namespace FilesUpgrade.Service
             from _7         in SelectUpgradePlanDiff(renameNode, upzipPath, target)
             from _8         in CopyDirectory(upzipPath, target)
             select unit;
-
-        private Subsystem<Either<FileInfo, DirectoryInfo>> ValidateSource(string source) =>
-            Directory.Exists(source)
-                ? ValidateAsDir(source).Bind(d => Subsystem.Return<Either<FileInfo, DirectoryInfo>>(d)) 
-                : ValidateAsFile(source).Bind(f => Subsystem.Return<Either<FileInfo, DirectoryInfo>>(f));
-
-        private Subsystem<FileInfo> ValidateAsFile(string source) =>
-            from fileinfo in fileSystem.GetFileInfo(source)
-            from _1 in CheckFileExist(fileinfo)
-            from _2 in IsZipFile(fileinfo)
-            from _3 in Subsystem.WriteLine($"Check Upgrade file {fileinfo.Name}({fileinfo.Length / 1024}kb) is existed.")
-            select fileinfo;
-
-        private Subsystem<DirectoryInfo> ValidateAsDir(string source) =>
-            from dirInfo in fileSystem.GetDirectoryInfo(source)
-            let size = fileSystem.GetDirectorySize(source)
-            from _ in Subsystem.WriteLine($"Check Upgrade file {dirInfo.Name}({size / 1024}kb) is existed.")
-            select dirInfo;
 
         private Subsystem<Node> TryGetNode(DirectoryInfo info) => () =>
         {
@@ -102,7 +90,7 @@ namespace FilesUpgrade.Service
                 }
                 else
                 {
-                    var expr = from context in fileSystem.ReadAllText(info.FullName)
+                    var expr = from context in fs.ReadAllText(info.FullName)
                                let cfg = JsonConvert.DeserializeObject<Config>(context)
                                select cfg;
 
@@ -110,7 +98,7 @@ namespace FilesUpgrade.Service
                 }
             };
 
-            return from info in fileSystem.GetFileInfo(configPath)
+            return from info in fs.GetFileInfo(configPath)
                    from cfg  in ParseConfig(info)
                    select cfg;
         }
@@ -121,7 +109,7 @@ namespace FilesUpgrade.Service
                 return WalkDirectoryTree(new DirectoryInfo(dir))();
             else
             {
-                var renameDir = fileSystem.RenameAll(dir, config.ReplaceList);
+                var renameDir = fs.RenameAll(dir, config.ReplaceList);
                 return WalkDirectoryTree(new DirectoryInfo(renameDir))();
             }
         };
@@ -180,7 +168,7 @@ namespace FilesUpgrade.Service
             var newPath = fileInfo.FullName.Replace(sourceDir, targetDir);
             var newFileInfo = new FileInfo(newPath);
 
-            if (newFileInfo.Exists && fileSystem.IsFileFullyEqual(oldPath, newPath))
+            if (newFileInfo.Exists && fs.IsFileFullyEqual(oldPath, newPath))
             {
                 node.Color = ConsoleColor.Gray;
             }
@@ -244,7 +232,7 @@ namespace FilesUpgrade.Service
 
         private Subsystem<Unit> CopyDirectory(string source, string target) => () =>
         {
-            fileSystem.CopyDirectory(source, target);
+            fs.CopyDirectory(source, target);
             return Out<Unit>.FromValue(unit);
         };
 
@@ -264,7 +252,7 @@ namespace FilesUpgrade.Service
                         string text = File.ReadAllText(fileInfo.FullName);
                         text = replaces.Fold(text, (s, repalce) => Regex.Replace(s, repalce.Pattern, repalce.Replacement));
 
-                        File.WriteAllText(fileInfo.FullName, text, fileSystem.GetEncoding(fileInfo.FullName));
+                        File.WriteAllText(fileInfo.FullName, text, fs.GetEncoding(fileInfo.FullName));
                     }
                 }
             }
@@ -275,7 +263,7 @@ namespace FilesUpgrade.Service
         public Subsystem<Unit> DeleteIgnoreList(string dir, List<string> names) => () =>
         {
             foreach (var name in names)
-                fileSystem.DeleteSubFolder(dir, name);
+                fs.DeleteSubFolder(dir, name);
 
             return Out<Unit>.FromValue(unit);
         };
@@ -286,13 +274,13 @@ namespace FilesUpgrade.Service
         public Subsystem<string> CopyToTempPath(Either<FileInfo, DirectoryInfo> info) => 
             info.Match(
                 rhs => CopyDirToTemp(rhs.FullName),
-                lhs => fileSystem.ExtractZipToCurrentDirectory(lhs.FullName)
+                lhs => fs.ExtractZipToTmpDirectory(lhs.FullName)
             );
         
         public Subsystem<string> CopyDirToTemp(string source) => () =>
         {
-            var tmp = fileSystem.CreateTmpDir(true);
-            fileSystem.CopyDirectory(source, tmp);
+            var tmp = fs.CreateDir(fs.GetTmpPath() + Path.GetFileName(source), true);
+            fs.CopyDirectory(source, tmp);
             return Out<string>.FromValue(tmp);
         };
     }

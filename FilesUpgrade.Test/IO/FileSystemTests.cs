@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using FilesUpgrade.Monad;
 using FilesUpgrade.Model.UpgradeSetting;
+using System.IO.Compression;
 
 namespace FilesUpgrade.IO.Tests
 {
@@ -25,12 +26,32 @@ namespace FilesUpgrade.IO.Tests
         }
 
         [TestMethod]
-        public void ExtractZipToCurrentDirectory_Normal_Case()
+        public void ExtractZipToCurrentDirectory_Fail_Case()
         {
-            var expr = from path in new FileSystem().ExtractZipToCurrentDirectory(@"D:\repos\filesUpgrade\FilesUpgrade\_TestCase\EDconfig.zi")
+            var expr = from path in new FileSystem().ExtractZipToTmpDirectory(@"D:\repos\filesUpgrade\FilesUpgrade\_TestCase\EDconfig.zi")
                        select path;
 
             Assert.IsFalse(Directory.Exists(expr().Value));
+        }
+
+        [TestMethod]
+        public void ExtractZipToCurrentDirectory_Normal_Case()
+        {
+            var fs = new FileSystem();
+            var tmp = fs.GetTmpPath();
+            var testDir = $"{tmp}test_dir";
+            var testZip = $"{tmp}result.zip";
+            if (Directory.Exists(testDir))
+                Directory.Delete(testDir);
+            Directory.CreateDirectory(testDir);
+            if (File.Exists(testZip))
+                File.Delete(testZip);
+            ZipFile.CreateFromDirectory(testDir, testZip);
+
+            var expr = from path in fs.ExtractZipToTmpDirectory(testZip)
+                       select path;
+
+            Assert.IsTrue(Directory.Exists(expr().Value));
         }
 
         [TestMethod()]
@@ -88,12 +109,21 @@ namespace FilesUpgrade.IO.Tests
         }
 
         [TestMethod()]
-        public void CreateDirTest()
+        public void CreateDirTest_Normal_Case()
         {
-            var path = new FileSystem().CreateTmpDir(true);
+            var fs = new FileSystem();
+            var targetDir = fs.GetTmpPath() + "dir1";
+            var dummyFile = fs.GetTmpPath() + "dir1\\dummy.txt";
+            if (Directory.Exists(targetDir))
+                Directory.Delete(targetDir, true);
+            Directory.CreateDirectory(targetDir);
+            File.CreateText(dummyFile).Close();
+
+            var path = fs.CreateDir(targetDir, true);
 
             Assert.IsTrue(Directory.Exists(path));
-            Assert.AreEqual(path, @"C:\Users\rugini\AppData\Roaming\FileUpgrade\Tmp");
+            Assert.AreEqual(path, targetDir);
+            Assert.AreEqual(new DirectoryInfo(path).GetFiles().Length, 0);
         }
     }
 }

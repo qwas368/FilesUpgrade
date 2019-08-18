@@ -55,7 +55,7 @@ namespace FilesUpgrade
         }
 
         public Subsystem<Unit> Router(string command, Seq<string> args) =>
-            command switch
+            command.ToLower() switch
             {
                 "upgrade" => mainController.Upgrade(args),
                 _         => Subsystem.Fail<Unit>($@"unknown command {command}")

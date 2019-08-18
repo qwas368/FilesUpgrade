@@ -29,6 +29,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JustMock">
@@ -55,7 +56,7 @@
     <Compile Include="Monad\SubsystemTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Service\UpgradeServiceTests.cs" />
-    <Compile Include="Validation\MainValidationTest.cs" />
+    <Compile Include="Validation\MainValidationTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FilesUpgrade\FilesUpgrade.csproj">

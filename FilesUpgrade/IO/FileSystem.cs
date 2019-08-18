@@ -29,9 +29,9 @@ namespace FilesUpgrade.IO
         public virtual Subsystem<DirectoryInfo> GetDirectoryInfo(string path) => () =>
             Out<DirectoryInfo>.FromValue(new DirectoryInfo(path));
 
-        public Subsystem<string> ExtractZipToCurrentDirectory(string path) => () =>
+        public Subsystem<string> ExtractZipToTmpDirectory(string path) => () =>
         {
-            string extractPath = Path.Combine(Path.GetDirectoryName(path), "tmp");
+            string extractPath = GetTmpPath() + Path.GetFileNameWithoutExtension(path);
 
             if (Directory.Exists(extractPath))
                 Directory.Delete(extractPath, recursive: true);
@@ -201,16 +201,27 @@ namespace FilesUpgrade.IO
         /// </summary>
         /// <param name="force">刪除已存在的資料夾</param>
         /// <returns></returns>
-        public string CreateTmpDir(bool force)
+        public string CreateDir(string path, bool force)
         {
-            var dataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "FileUpgrade");
-            var tmpFolder = Path.Combine(dataFolder, "Tmp");
+            if (force && Directory.Exists(path))
+                Directory.Delete(path, true);
+            Directory.CreateDirectory(path);
 
-            if (force && Directory.Exists(tmpFolder))
-                Directory.Delete(tmpFolder, true);
-            Directory.CreateDirectory(tmpFolder);
+            return path;
+        }
 
-            return tmpFolder;
+        /// <summary>
+        /// 取得暫存路徑
+        /// </summary>
+        /// <returns></returns>
+        public string GetTmpPath()
+        {
+            var tmp = Path.GetTempPath() + "FileSystem";
+
+            if (!Directory.Exists(tmp))
+                Directory.CreateDirectory(tmp);
+
+            return tmp + "\\";
         }
     }
 }

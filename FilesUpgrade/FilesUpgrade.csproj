@@ -82,10 +82,10 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <None Include="_TestCase\EDconfig.zip" />
+    <None Include="TestCase\EDconfig.zip" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="_TestCase\EAP\EDconfig.xml" />
+    <Content Include="TestCase\EAP\EDconfig.xml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="External\Diff\" />

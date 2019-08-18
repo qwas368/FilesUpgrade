@@ -47,7 +47,7 @@ namespace FilesUpgrade.Test
         [TestMethod]
         public void Router_Upgrade_Command()
         {
-            var mock = new Mock<MainController>(null);
+            var mock = new Mock<MainController>(null, null);
             mock.Setup(m => m.Upgrade(Seq<string>())).Returns(Subsystem.Return(unit));
 
             Entry entry = new Entry(mock.Object);

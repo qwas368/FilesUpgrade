@@ -10,6 +10,7 @@ using System.Reflection;
 using FilesUpgrade.Controller;
 using FilesUpgrade.Service;
 using FilesUpgrade.IO;
+using FilesUpgrade.Validation;
 
 namespace FilesUpgrade
 {
@@ -43,6 +44,7 @@ namespace FilesUpgrade
             builder.RegisterAssemblyTypes(assembly)
                 .Where(t => t.Name.EndsWith("Controller"));
 
+            builder.RegisterType<MainValidation>();
             builder.RegisterType<FileSystem>();
             builder.RegisterType<Diff>();
             builder.RegisterType<Entry>();
