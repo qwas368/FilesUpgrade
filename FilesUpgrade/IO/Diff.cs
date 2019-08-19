@@ -16,7 +16,7 @@ namespace FilesUpgrade.IO
         /// </summary>
         public Unit ShowDiff(string path1, string path2)
         {
-            var info = new ProcessStartInfo(@".\diff.exe", $@"--unified --color {path1} {path2}")
+            var info = new ProcessStartInfo(@".\diff.exe", $@"--unified --color {path2} {path1}")
             {
                 UseShellExecute = false
             };

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -49,7 +50,7 @@ namespace FilesUpgrade.IO
         /// <param name="dir"></param>
         /// <param name="replaces"></param>
         /// <returns>rename dir</returns>
-        public virtual string RenameAll(string dir, List<Replace> replaces)
+        public virtual string RenameAll(string dir, List<Replace> replaces, bool isRenameSelf)
         {
             var dirNames = Directory.EnumerateDirectories(dir);
             var fileNames = Directory.EnumerateFiles(dir);
@@ -57,7 +58,7 @@ namespace FilesUpgrade.IO
             // rename subDir
             foreach (string path in dirNames)
             {
-                RenameAll(path, replaces);
+                RenameAll(path, replaces, true);
             }
 
             // rename files
@@ -81,7 +82,7 @@ namespace FilesUpgrade.IO
             var replace2 = replaces
                 .Where(x => x.Type == Enum.Type.Directory)
                 .FirstOrDefault(x => Regex.IsMatch(info.Name, x.Pattern));
-            if (replace2 != null)
+            if (isRenameSelf && replace2 != null)
             {
                 var newPath = Path.Combine(Path.GetDirectoryName(info.FullName), Regex.Replace(info.Name, replace2.Pattern, replace2.Replacement));
                 Directory.Move(dir, newPath);
@@ -94,10 +95,21 @@ namespace FilesUpgrade.IO
         }
 
         /// <summary>
-        /// 複製整個資料夾
+        /// 移動整個資料夾的資料，到另一個資料夾
+        /// </summary>
+        public virtual void MoveDirectory(string source, string target)
+        {
+            CopyDirectory(source, target);
+
+            Directory.Delete(source, true);
+        }
+
+        /// <summary>
+        /// 複製資料夾
         /// </summary>
         public virtual void CopyDirectory(string source, string target)
         {
+
             var sourcePath = source.TrimEnd('\\', ' ');
             var targetPath = target.TrimEnd('\\', ' ');
             var files = Directory.EnumerateFiles(sourcePath, "*", SearchOption.AllDirectories)
@@ -121,14 +133,22 @@ namespace FilesUpgrade.IO
                         }
                         catch
                         {
-                            File.Move(targetFile, Path.Combine(targetFolder, "_" + Path.GetFileName(file)));
+                            File.Copy(targetFile, Path.Combine(targetFolder, "_" + Path.GetFileName(file)));
                         }
                     }
-                    File.Move(file, targetFile);
+                    File.Copy(file, targetFile);
                 }
             }
 
-            Directory.Delete(source, true);
+        }
+
+        public virtual void CopyEmbeddedFile(string embeddedSource, string target)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+
+            using Stream embeddedFileStream = assembly.GetManifestResourceStream(embeddedSource);
+            using Stream targetFileStream = File.Create(target);
+            embeddedFileStream.CopyTo(targetFileStream);
         }
 
         /// <summary>
@@ -222,6 +242,12 @@ namespace FilesUpgrade.IO
                 Directory.CreateDirectory(tmp);
 
             return tmp + "\\";
+        }
+
+        public void CleanTmpFolder()
+        {
+            Directory.Delete(GetTmpPath(), true);
+            GetTmpPath();
         }
     }
 }

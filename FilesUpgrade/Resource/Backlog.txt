@@ -1,0 +1,3 @@
+﻿upgrade D:\repos\filesUpgrade\FilesUpgrade\TestCase\EDconfig  D:\repos\filesUpgrade\FilesUpgrade\TestCase\EAP
+
+copysetting D:\repos\filesUpgrade\FilesUpgrade\TestCase\WhiteFolder

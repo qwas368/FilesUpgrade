@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using FilesUpgrade.Controller;
+using FilesUpgrade.IO;
 using FilesUpgrade.Model;
 using FilesUpgrade.Monad;
 using LanguageExt;
@@ -15,13 +16,21 @@ namespace FilesUpgrade
     {
         private readonly MainController mainController;
 
-        public Entry(MainController mainController)
+        private readonly FileSystem fs;
+
+        public Entry(
+            MainController mainController,
+            FileSystem fileSystem
+            )
         {
             this.mainController = mainController;
+            this.fs = fileSystem;
         }
 
         public Out<string> Execute(string[] args)
         {
+            fs.CleanTmpFolder();
+
             var expr = from command in FetchCommand(args)
                        from _       in Router(command, args.Tail().ToSeq())
                        select command;
@@ -44,8 +53,8 @@ namespace FilesUpgrade
             {
                 string message = "Usage: FilesUpgrad.exe <command>\n";
                 message += "\n";
-                message += "where <command> is one of:";
-                message += "upgrade";
+                message += "where <command> is :";
+                message += "upgrade, copysetting";
                 return Subsystem.Fail<string>(message);
             }
             else
@@ -57,8 +66,9 @@ namespace FilesUpgrade
         public Subsystem<Unit> Router(string command, Seq<string> args) =>
             command.ToLower() switch
             {
-                "upgrade" => mainController.Upgrade(args),
-                _         => Subsystem.Fail<Unit>($@"unknown command {command}")
+                "upgrade"     => mainController.Upgrade(args),
+                "copysetting" => mainController.CopySetting(args),
+                _             => Subsystem.Fail<Unit>($@"unknown command {command}")
             };
     }
 }

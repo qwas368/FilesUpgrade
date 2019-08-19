@@ -11,6 +11,7 @@ using FilesUpgrade.Controller;
 using FilesUpgrade.Service;
 using FilesUpgrade.IO;
 using FilesUpgrade.Validation;
+using System.IO;
 
 namespace FilesUpgrade
 {

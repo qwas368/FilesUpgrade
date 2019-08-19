@@ -82,7 +82,7 @@ namespace FilesUpgrade.IO.Tests
             File.CreateText(@"D:/TestForUnitTest/BTSK7701.xml").Dispose();
             File.CreateText(@"D:/TestForUnitTest/BTSK7701/BTSK7701_1/BTSK7701_1.xml").Dispose();
 
-            fileSystem.RenameAll(@"D:/TestForUnitTest", replaces);
+            fileSystem.RenameAll(@"D:/TestForUnitTest", replaces, false);
 
             Assert.IsTrue(Directory.Exists(@"D:/TestForUnitTest/BTSK7702"));
             Assert.IsTrue(Directory.Exists(@"D:/TestForUnitTest/BTSK7702/BTSK7702_1"));

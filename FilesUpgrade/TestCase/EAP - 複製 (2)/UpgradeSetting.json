@@ -1,0 +1,23 @@
+{
+    "replaceList": [
+        {
+            "pattern": "EDconfig",
+			"replacement": "EDconfig.1",
+			"type": "File"
+        },
+        {
+            "pattern": "BTSK.{4}",
+			"replacement": "BTSK7702",
+			"type": 1
+        },
+		{
+		  "pattern": "(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])",
+		  "replacement": "10.16.10.66",
+		  "type": 2,
+		  "fileMatch": ""
+		}
+    ],
+    "ignoreList": [
+        "CVS"
+    ]
+}

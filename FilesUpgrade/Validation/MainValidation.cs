@@ -35,10 +35,33 @@ namespace FilesUpgrade.Validation
             return Out<(string, string)>.FromValue(paths);
         };
 
+        public Subsystem<string> ValidateCopySettingParam(Seq<string> args) => () =>
+        {
+            if (args.Count() >= 1)
+                return Out<string>.FromValue(args[0]);
+            else
+                return Out<string>.FromError("Miss Path Parameter");
+        };
+
         public Subsystem<bool> CheckFileExist(FileInfo fileInfo) => () =>
             fileInfo.Exists 
                 ? Out<bool>.FromValue(true) 
                 : Out<bool>.FromError(($"File {fileInfo.FullName} is not existed"));
+
+        public Subsystem<bool> CheckFileNotExist(FileInfo fileInfo) => () =>
+            !fileInfo.Exists
+                ? Out<bool>.FromValue(true)
+                : Out<bool>.FromError(($"File {fileInfo.FullName} is existed"));
+
+        public Subsystem<bool> CheckDirectoryExist(DirectoryInfo directoryInfo) => () =>
+            directoryInfo.Exists
+                ? Out<bool>.FromValue(true)
+                : Out<bool>.FromError(($"File {directoryInfo.FullName} is not existed"));
+
+        public Subsystem<bool> CheckHasWhiteSpace(string s, string name) => () =>
+            s.Trim().Length == s.Length
+                ? Out<bool>.FromValue(true)
+                : Out<bool>.FromError(($"Path {name} has white space"));
 
         public Subsystem<DirectoryInfo> CheckFolderExistOrCreate(string path) => () =>
             !Directory.Exists(path)

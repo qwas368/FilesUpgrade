@@ -1,4 +1,5 @@
 ﻿using FilesUpgrade.Controller;
+using FilesUpgrade.IO;
 using FilesUpgrade.Monad;
 using LanguageExt;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -18,7 +19,7 @@ namespace FilesUpgrade.Test
         [TestMethod]
         public void FetchCommand_No_Command()
         {
-            Entry entry = new Entry(null);
+            Entry entry = new Entry(null, new FileSystem());
             var expr = entry.FetchCommand(new string[0]);
             
             expr().Error.Match(
@@ -29,7 +30,7 @@ namespace FilesUpgrade.Test
         [TestMethod]
         public void FetchCommand_Upgrade_Command()
         {
-            Entry entry = new Entry(null);
+            Entry entry = new Entry(null, new FileSystem());
             var expr = entry.FetchCommand(new string[1] { "upgrade" });
 
             Assert.AreEqual(expr().Value, "upgrade");
@@ -39,7 +40,7 @@ namespace FilesUpgrade.Test
         [TestMethod]
         public void Router_Unknown_Command()
         {
-            Entry entry = new Entry(null);
+            Entry entry = new Entry(null, new FileSystem());
             var expr = entry.Router("update???", Seq<string>());
             Assert.IsTrue(expr().Error.IsSome);
         }
@@ -47,10 +48,10 @@ namespace FilesUpgrade.Test
         [TestMethod]
         public void Router_Upgrade_Command()
         {
-            var mock = new Mock<MainController>(null, null);
+            var mock = new Mock<MainController>(null, null, null);
             mock.Setup(m => m.Upgrade(Seq<string>())).Returns(Subsystem.Return(unit));
 
-            Entry entry = new Entry(mock.Object);
+            Entry entry = new Entry(mock.Object, new FileSystem());
             var expr = entry.Router("upgrade", Seq<string>());
             Assert.AreEqual(expr().Value, unit);
         }

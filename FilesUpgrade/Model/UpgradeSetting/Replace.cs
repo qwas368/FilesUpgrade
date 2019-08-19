@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿#nullable enable
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
@@ -10,12 +11,14 @@ namespace FilesUpgrade.Model.UpgradeSetting
 {
     public class Replace
     {
-        public string Pattern { get; set; }
+        public string Pattern { get; set; } = "";
 
-        public string Replacement { get; set; }
+        public string Replacement { get; set; } = "";
 
         [JsonProperty("type")]
         [JsonConverter(typeof(StringEnumConverter))]
         public FilesUpgrade.Enum.Type Type { get; set; }
+
+        public string? FileMatch { get; set; }
     }
 }

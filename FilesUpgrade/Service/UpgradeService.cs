@@ -8,14 +8,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static LanguageExt.Prelude;
-using static FilesUpgrade.Validation.MainValidation;
 using FilesUpgrade.Model;
 using System.IO;
 using FilesUpgrade.Model.UpgradeSetting;
 using Newtonsoft.Json;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+using static LanguageExt.Prelude;
+using static FilesUpgrade.Validation.MainValidation;
 
 namespace FilesUpgrade.Service
 {
@@ -40,19 +40,20 @@ namespace FilesUpgrade.Service
         public Subsystem<Unit> Upgrade(string source, string target) =>
             from info       in mainValidation.ValidateSource(source)
             from upzipPath  in CopyToTempPath(info)
-            from _2         in Subsystem.WriteLine($"Unzip to {upzipPath}")
+            from _1         in Subsystem.WriteLine($"Unzip to {upzipPath}")
             from targetDic  in mainValidation.CheckFolderExistOrCreate(target)
-            from _3         in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
+            from _2         in Subsystem.WriteLine($"Target Directory {targetDic.FullName} is existed.")
             from targetNode in WalkDirectoryTree(targetDic)
             from cfg        in FetchConfig(Path.Combine(target, @"UpgradeSetting.json"))
             let upzipDic = new DirectoryInfo(upzipPath)
-            from _4         in DeleteIgnoreList(upzipPath, cfg.IgnoreList)
+            from _3         in DeleteIgnoreList(upzipPath, cfg.IgnoreList)
             from sourceNode in WalkDirectoryTree(upzipDic)
             from renameNode in FullRename(upzipPath, cfg)
-            from _5         in ReplaceFileContent(renameNode, cfg.ReplaceList)
+            from _4         in ReplaceFileContent(renameNode, cfg.ReplaceList)
             from planedNode in ShowUpgradePlan(renameNode, upzipPath, target)
-            from _6         in CheckYorN("Continue to upgrade? (y/N)")
-            from _7         in SelectUpgradePlanDiff(renameNode, upzipPath, target)
+            from _5         in SelectUpgradePlanDiff(renameNode, upzipPath, target)
+            from _6         in ShowUpgradePlan(renameNode, upzipPath, target)
+            from _7         in CheckYorN("Continue to upgrade? (y/N)")
             from _8         in CopyDirectory(upzipPath, target)
             select unit;
 
@@ -109,8 +110,8 @@ namespace FilesUpgrade.Service
                 return WalkDirectoryTree(new DirectoryInfo(dir))();
             else
             {
-                var renameDir = fs.RenameAll(dir, config.ReplaceList);
-                return WalkDirectoryTree(new DirectoryInfo(renameDir))();
+                fs.RenameAll(dir, config.ReplaceList, false);
+                return WalkDirectoryTree(new DirectoryInfo(dir))();
             }
         };
 
@@ -127,7 +128,7 @@ namespace FilesUpgrade.Service
             return Out<Node>.FromValue(sourceNode);
         };
 
-        public Subsystem<Node> SelectUpgradePlanDiff(Node sourceNode, string sourceDir, string targetDir) => () =>
+        public Subsystem<Unit> SelectUpgradePlanDiff(Node sourceNode, string sourceDir, string targetDir) => () =>
         {
             var nodeList = (from node in sourceNode.Enumerate().Tail()
                             let colorNode = MarkKUpgradePlanColor(node, sourceDir, targetDir)
@@ -135,6 +136,8 @@ namespace FilesUpgrade.Service
                             .ToList();
 
             var index = 0;
+
+            Console.WriteLine("Press (Top/Donw/Enter/End) to select file and diff...");
             while (true)
             {
                 ConsoleKeyInfo ckey = Console.ReadKey();
@@ -143,17 +146,25 @@ namespace FilesUpgrade.Service
                 switch (ckey.Key)
                 {
                     case ConsoleKey.DownArrow:
-                        index = index < nodeList.Count() - 1 ? index + 1 : index;
+                        index = index + 1 < nodeList.Count() ? index + 1 : 0;
+                        break;
+                    case ConsoleKey.RightArrow:
+                        index = index + 5 < nodeList.Count() ? index + 5 : index + 5 - nodeList.Count();
                         break;
                     case ConsoleKey.UpArrow:
-                        index = index > 0 ? index - 1 : index;
+                        index = index - 1 >= 0 ? index - 1 : nodeList.Count() - 1;
+                        break;
+                    case ConsoleKey.LeftArrow:
+                        index = index - 5 >= 0 ? index - 5 : nodeList.Count() + index - 5;
                         break;
                     case ConsoleKey.Enter:
                         Diff(nodeList[index], sourceDir, targetDir);
                         Console.ReadKey();
+                        Console.Clear();
                         break;
+                    case ConsoleKey.Escape:
+                        return Out<Unit>.FromValue(unit);
                 }
-
                 ConsoleW.PrintNode(sourceNode, "", true, nodeList[index]);
             }
         };
@@ -232,18 +243,21 @@ namespace FilesUpgrade.Service
 
         private Subsystem<Unit> CopyDirectory(string source, string target) => () =>
         {
-            fs.CopyDirectory(source, target);
+            fs.MoveDirectory(source, target);
             return Out<Unit>.FromValue(unit);
         };
 
-        public Subsystem<Unit> ReplaceFileContent(Node nodeTree, List<Replace> replaces) => () =>
+        public Subsystem<Unit> ReplaceFileContent(Node nodeTree, List<Replace> totelReplaces) => () =>
         {
-            replaces = replaces.Where(x => x.Type == Enum.Type.FileContent).ToList();
+            totelReplaces = totelReplaces.Where(x => x.Type == Enum.Type.FileContent).ToList();
             foreach (var node in nodeTree.Enumerate())
             {
                 if (node.Info.IsLeft)
                 {
                     var fileInfo = node.Info.IfRight(() => default);
+
+                    var replaces = totelReplaces.Where(x => x.FileMatch == null || Regex.IsMatch(fileInfo.Name, x.FileMatch)).ToList();
+
                     if (fileInfo.Extension == ".xml" || 
                         fileInfo.Extension == ".json" || 
                         fileInfo.Extension == ".txt" || 
