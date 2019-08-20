@@ -279,6 +279,9 @@ namespace FilesUpgrade.Service
             foreach (var name in names)
                 fs.DeleteSubFolder(dir, name);
 
+            foreach (var name in names)
+                fs.DeleteFiles(dir, name);
+
             return Out<Unit>.FromValue(unit);
         };
 

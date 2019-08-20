@@ -199,6 +199,20 @@ namespace FilesUpgrade.IO
             return unit;
         }
 
+        public Unit DeleteFiles(string dir, string name)
+        {
+            var files = new DirectoryInfo(dir)
+               .EnumerateFiles("*.*", SearchOption.AllDirectories)
+               .Where(fi => fi.Name == name);
+
+            foreach(var file in files)
+            {
+                file.Delete();
+            }
+
+            return unit;
+        }
+
         /// <summary>
         /// Get Directory
         /// </summary>
