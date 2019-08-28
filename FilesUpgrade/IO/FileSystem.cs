@@ -133,7 +133,7 @@ namespace FilesUpgrade.IO
                         }
                         catch
                         {
-                            File.Copy(targetFile, Path.Combine(targetFolder, "_" + Path.GetFileName(file)));
+                            File.Move(targetFile, Path.Combine(targetFolder, "_" + Path.GetFileName(file)));
                         }
                     }
                     File.Copy(file, targetFile);
